@@ -38,6 +38,33 @@ function App() {
   const [rankingTab, setRankingTab] = useState<'daily' | 'weekly'>('daily');
   const [rankings, setRankings] = useState<RankEntry[]>([]);
   const [isLoadingRankings, setIsLoadingRankings] = useState(false);
+  const [personalBest, setPersonalBest] = useState<number>(0);
+  const [totalStats, setTotalStats] = useState<{normal: number, timeattack: number, infinite: number}>({normal: 0, timeattack: 0, infinite: 0});
+
+  // Helper: Fetch Overall Stats from Server
+  const fetchOverallStats = useCallback(async () => {
+    if (!userNickname) return;
+    try {
+      const [n5, n6, n7, t5, t6, t7, i5, i6, i7] = await Promise.all([
+        getRemotePersonalBest('normal', 5), getRemotePersonalBest('normal', 6), getRemotePersonalBest('normal', 7),
+        getRemotePersonalBest('timeattack', 5), getRemotePersonalBest('timeattack', 6), getRemotePersonalBest('timeattack', 7),
+        getRemotePersonalBest('infinite', 5), getRemotePersonalBest('infinite', 6), getRemotePersonalBest('infinite', 7)
+      ]);
+      setTotalStats({
+        normal: n5 + n6 + n7,
+        timeattack: Math.max(t5, t6, t7),
+        infinite: Math.max(i5, i6, i7)
+      });
+    } catch (error) {
+      console.error('Failed to fetch overall stats:', error);
+    }
+  }, [userNickname, getRemotePersonalBest]);
+
+  useEffect(() => {
+    if (!currentMode && userNickname) {
+      fetchOverallStats();
+    }
+  }, [currentMode, userNickname, fetchOverallStats]);
 
   // Helper: Fetch Rankings from Server
   const fetchRankings = useCallback(async () => {
@@ -53,23 +80,31 @@ function App() {
     }
   }, [rankingTab]);
 
+  // Helper: Fetch Personal Best from Server
+  const getRemotePersonalBest = useCallback(async (type: string, size: number) => {
+    if (!userNickname) return 0;
+    try {
+      const response = await fetch(`${API_URL}/personal-best?nickname=${encodeURIComponent(userNickname)}&type=${type}&size=${size}`);
+      const best = await response.json();
+      return best as number;
+    } catch (error) {
+      console.error('Failed to fetch personal best:', error);
+      return 0;
+    }
+  }, [userNickname]);
+
   useEffect(() => {
     if (isRankingOpen) {
       fetchRankings();
     }
   }, [isRankingOpen, fetchRankings]);
 
-  // Helper: Get Personal Best
-  const fetchPersonalBest = useCallback((type: string, size: number) => {
-    const scores: RankEntry[] = JSON.parse(localStorage.getItem('jamoword_scores') || '[]');
-    const filtered = scores.filter(s => s.type === type && s.size === size);
-    
-    if (type === 'normal') {
-      return filtered.length; // Total words solved for Normal
-    } else {
-      return filtered.length > 0 ? Math.max(...filtered.map(s => s.score)) : 0; // Max score for TA/Infinite
+  // Update PB when mode changes
+  useEffect(() => {
+    if (currentMode && userNickname) {
+      getRemotePersonalBest(currentMode.type, currentMode.size).then(setPersonalBest);
     }
-  }, []);
+  }, [currentMode, userNickname, getRemotePersonalBest]);
 
   const registerNickname = () => {
     if (nicknameInput.trim().length < 2) {
@@ -80,10 +115,10 @@ function App() {
     setUserNickname(nicknameInput);
   };
 
-  const initGame = useCallback((mode: GameMode) => {
+  const initGame = useCallback(async (mode: GameMode) => {
     const list = WORD_LIST[mode.size];
     const target = list[Math.floor(Math.random() * list.length)];
-    const pb = fetchPersonalBest(mode.type, mode.size);
+    const pb = await getRemotePersonalBest(mode.type, mode.size);
     
     let timerSeconds = undefined;
     if (mode.type === 'timeattack') timerSeconds = 60;
@@ -104,7 +139,7 @@ function App() {
       isNewBest: false,
     });
     setCurrentMode(mode);
-  }, [fetchPersonalBest]);
+  }, [getRemotePersonalBest]);
 
   const saveScore = useCallback(async (score: number) => {
     if (!userNickname || !currentMode) return;
@@ -117,34 +152,26 @@ function App() {
       timestamp: Date.now(),
     };
 
-    // Save to Server
     try {
       await fetch(`${API_URL}/scores`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newEntry),
       });
+
+      // Update PB locally if it's a new record
+      if (score > personalBest) {
+        setPersonalBest(score);
+        setGameState(prev => prev ? { ...prev, isNewBest: true, personalBest: score } : prev);
+      } else if (currentMode.type === 'normal') {
+        // For normal mode, we might want to fetch the updated count or just flag success
+        setGameState(prev => prev ? { ...prev, isNewBest: true } : prev);
+      }
     } catch (error) {
       console.error('Failed to save score to server:', error);
+      // Fallback: alert or local save if needed
     }
-
-    // Still save to local storage for quick access and offline support
-    const existingScores: RankEntry[] = JSON.parse(localStorage.getItem('jamoword_scores') || '[]');
-    const currentPB = fetchPersonalBest(currentMode.type, currentMode.size);
-    let isNew = false;
-    if (currentMode.type === 'normal') {
-      isNew = true;
-    } else {
-      isNew = score > currentPB;
-    }
-
-    existingScores.push(newEntry);
-    localStorage.setItem('jamoword_scores', JSON.stringify(existingScores));
-    
-    if (isNew) {
-      setGameState(prev => prev ? { ...prev, isNewBest: true } : prev);
-    }
-  }, [userNickname, currentMode, fetchPersonalBest]);
+  }, [userNickname, currentMode, personalBest]);
 
   const nextWord = useCallback(() => {
     if (!currentMode || !gameState) return;
@@ -483,7 +510,7 @@ function App() {
               </div>
               <p>기회 내에 차분하게 단어를 추리하세요.</p>
               <div className="pb-badge">
-                내 기록: <span>{fetchPersonalBest('normal', 5) + fetchPersonalBest('normal', 6) + fetchPersonalBest('normal', 7)}개</span> 정복
+                내 기록: <span>{totalStats.normal}개</span> 정복
               </div>
               <div className="mode-buttons">
                 {normalModes.map((m, i) => (
@@ -500,7 +527,7 @@ function App() {
               </div>
               <p>60초 동안 최대한 많은 단어를 맞추세요.</p>
               <div className="pb-badge">
-                최고 점수: <span>{Math.max(fetchPersonalBest('timeattack', 5), fetchPersonalBest('timeattack', 6), fetchPersonalBest('timeattack', 7))}개</span>
+                최고 점수: <span>{totalStats.timeattack}개</span>
               </div>
               <div className="mode-buttons">
                 {timeAttackModes.map((m, i) => (
@@ -517,7 +544,7 @@ function App() {
               </div>
               <p>10분 동안 한계가 없는 도전을 즐기세요.</p>
               <div className="pb-badge">
-                최고 점수: <span>{Math.max(fetchPersonalBest('infinite', 5), fetchPersonalBest('infinite', 6), fetchPersonalBest('infinite', 7))}개</span>
+                최고 점수: <span>{totalStats.infinite}개</span>
               </div>
               <div className="mode-buttons">
                 {infiniteModes.map((m, i) => (
