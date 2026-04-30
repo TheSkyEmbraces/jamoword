@@ -7,7 +7,7 @@ dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 5000;
-const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017';
+const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
 const dbName = 'jamoword';
 
 app.use(cors());
