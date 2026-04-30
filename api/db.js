@@ -1,10 +1,10 @@
 import { MongoClient, Db } from 'mongodb';
 
-const uri = process.env.MONGODB_URI!;
+const uri = process.env.MONGODB_URI;
 const dbName = 'jamoword';
 
-let cachedClient: MongoClient | null = null;
-let cachedDb: Db | null = null;
+let cachedClient = null;
+let cachedDb = null;
 
 export async function connectToDatabase() {
   if (cachedClient && cachedDb) {

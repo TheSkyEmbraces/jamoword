@@ -6,9 +6,9 @@ const cors = Cors({
   methods: ['GET', 'HEAD'],
 });
 
-function runMiddleware(req: VercelRequest, res: VercelResponse, fn: any) {
+function runMiddleware(req, res, fn) {
   return new Promise((resolve, reject) => {
-    fn(req, res, (result: any) => {
+    fn(req, res, (result) => {
       if (result instanceof Error) {
         return reject(result);
       }
@@ -17,8 +17,12 @@ function runMiddleware(req: VercelRequest, res: VercelResponse, fn: any) {
   });
 }
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+async function handler(req, res) {
   await runMiddleware(req, res, cors);
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
 
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -26,18 +30,28 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const { type, size, period } = req.query;
-    
+
     const { db } = await connectToDatabase();
     const collection = db.collection('scores');
-    const query: any = {};
-    
-    if (type) query.type = type;
-    if (size) query.size = parseInt(size as string);
-    
+
+    const query = {};
+
+    if (type) {
+      query.type = type;
+    }
+
+    if (size) {
+      query.size = parseInt(size, 10);
+    }
+
     if (period === 'daily') {
-      query.timestamp = { $gt: Date.now() - 24 * 60 * 60 * 1000 };
+      query.timestamp = {
+        $gt: Date.now() - 24 * 60 * 60 * 1000,
+      };
     } else if (period === 'weekly') {
-      query.timestamp = { $gt: Date.now() - 7 * 24 * 60 * 60 * 1000 };
+      query.timestamp = {
+        $gt: Date.now() - 7 * 24 * 60 * 60 * 1000,
+      };
     }
 
     const rankings = await collection
@@ -46,9 +60,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .limit(10)
       .toArray();
 
-    res.json(rankings);
+    return res.status(200).json(rankings);
   } catch (error) {
     console.error('Error fetching rankings:', error);
-    res.status(500).json({ error: 'Internal server error' });
+
+    return res.status(500).json({
+      error: 'Internal server error',
+    });
   }
 }
+
+module.exports = handler;
