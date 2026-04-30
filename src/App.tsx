@@ -249,7 +249,7 @@ function App() {
       }, 1000);
     }
     return () => clearInterval(timer);
-  }, [gameState?.isGameOver, currentMode?.type, saveScore]);
+  }, [gameState, currentMode?.type, saveScore]);
 
   useEffect(() => {
     const isMultiWordMode = currentMode?.type === 'timeattack' || currentMode?.type === 'infinite';
@@ -257,7 +257,7 @@ function App() {
       const timeout = setTimeout(nextWord, 500);
       return () => clearTimeout(timeout);
     }
-  }, [gameState?.isWin, currentMode?.type, nextWord, gameState?.isGameOver]);
+  }, [gameState, currentMode?.type, nextWord]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
