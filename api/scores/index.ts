@@ -1,5 +1,5 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { connectToDatabase } from '../db';
+const { connectToDatabase } = require("../db");
 import Cors from 'cors';
 
 const cors = Cors({

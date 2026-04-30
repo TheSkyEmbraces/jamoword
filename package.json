@@ -45,6 +45,7 @@
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
-    "@types/mongodb": "^4.0.7"
+    "@types/mongodb": "^4.0.7",
+    "@vercel/node": "^5.7.13"
   }
 }
