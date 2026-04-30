@@ -41,6 +41,20 @@ function App() {
   const [personalBest, setPersonalBest] = useState<number>(0);
   const [totalStats, setTotalStats] = useState<{normal: number, timeattack: number, infinite: number}>({normal: 0, timeattack: 0, infinite: 0});
 
+
+
+    // Helper: Fetch Personal Best from Server
+  const getRemotePersonalBest = useCallback(async (type: string, size: number) => {
+    if (!userNickname) return 0;
+    try {
+      const response = await fetch(`${API_URL}/personal-best?nickname=${encodeURIComponent(userNickname)}&type=${type}&size=${size}`);
+      const best = await response.json();
+      return best as number;
+    } catch (error) {
+      console.error('Failed to fetch personal best:', error);
+      return 0;
+    }
+  }, [userNickname]);
   // Helper: Fetch Overall Stats from Server
   const fetchOverallStats = useCallback(async () => {
     if (!userNickname) return;
@@ -80,18 +94,7 @@ function App() {
     }
   }, [rankingTab]);
 
-  // Helper: Fetch Personal Best from Server
-  const getRemotePersonalBest = useCallback(async (type: string, size: number) => {
-    if (!userNickname) return 0;
-    try {
-      const response = await fetch(`${API_URL}/personal-best?nickname=${encodeURIComponent(userNickname)}&type=${type}&size=${size}`);
-      const best = await response.json();
-      return best as number;
-    } catch (error) {
-      console.error('Failed to fetch personal best:', error);
-      return 0;
-    }
-  }, [userNickname]);
+
 
   useEffect(() => {
     if (isRankingOpen) {
