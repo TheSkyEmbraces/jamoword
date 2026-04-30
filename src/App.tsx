@@ -25,6 +25,10 @@ interface GameState {
   isNewBest: boolean;
 }
 
+const API_URL = process.env.NODE_ENV === 'production' 
+  ? '/api' 
+  : 'http://localhost:5000/api';
+
 function App() {
   const [userNickname, setUserNickname] = useState<string | null>(localStorage.getItem('jamoword_nickname'));
   const [nicknameInput, setNicknameInput] = useState('');
@@ -32,6 +36,28 @@ function App() {
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [isRankingOpen, setIsRankingOpen] = useState(false);
   const [rankingTab, setRankingTab] = useState<'daily' | 'weekly'>('daily');
+  const [rankings, setRankings] = useState<RankEntry[]>([]);
+  const [isLoadingRankings, setIsLoadingRankings] = useState(false);
+
+  // Helper: Fetch Rankings from Server
+  const fetchRankings = useCallback(async () => {
+    setIsLoadingRankings(true);
+    try {
+      const response = await fetch(`${API_URL}/rankings?period=${rankingTab}`);
+      const data = await response.json();
+      setRankings(data);
+    } catch (error) {
+      console.error('Failed to fetch rankings:', error);
+    } finally {
+      setIsLoadingRankings(false);
+    }
+  }, [rankingTab]);
+
+  useEffect(() => {
+    if (isRankingOpen) {
+      fetchRankings();
+    }
+  }, [isRankingOpen, fetchRankings]);
 
   // Helper: Get Personal Best
   const fetchPersonalBest = useCallback((type: string, size: number) => {
@@ -80,19 +106,9 @@ function App() {
     setCurrentMode(mode);
   }, [fetchPersonalBest]);
 
-  const saveScore = useCallback((score: number) => {
+  const saveScore = useCallback(async (score: number) => {
     if (!userNickname || !currentMode) return;
-    const existingScores: RankEntry[] = JSON.parse(localStorage.getItem('jamoword_scores') || '[]');
     
-    // Check if new best before adding
-    const currentPB = fetchPersonalBest(currentMode.type, currentMode.size);
-    let isNew = false;
-    if (currentMode.type === 'normal') {
-      isNew = true; // Every success in normal adds to the total solved count
-    } else {
-      isNew = score > currentPB;
-    }
-
     const newEntry: RankEntry = {
       nickname: userNickname,
       score,
@@ -100,7 +116,28 @@ function App() {
       size: currentMode.size,
       timestamp: Date.now(),
     };
-    
+
+    // Save to Server
+    try {
+      await fetch(`${API_URL}/scores`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newEntry),
+      });
+    } catch (error) {
+      console.error('Failed to save score to server:', error);
+    }
+
+    // Still save to local storage for quick access and offline support
+    const existingScores: RankEntry[] = JSON.parse(localStorage.getItem('jamoword_scores') || '[]');
+    const currentPB = fetchPersonalBest(currentMode.type, currentMode.size);
+    let isNew = false;
+    if (currentMode.type === 'normal') {
+      isNew = true;
+    } else {
+      isNew = score > currentPB;
+    }
+
     existingScores.push(newEntry);
     localStorage.setItem('jamoword_scores', JSON.stringify(existingScores));
     
@@ -349,18 +386,6 @@ function App() {
     return `${m}:${s < 10 ? '0' : ''}${s}`;
   };
 
-  const getRankings = () => {
-    const scores: RankEntry[] = JSON.parse(localStorage.getItem('jamoword_scores') || '[]');
-    const now = Date.now();
-    const oneDay = 24 * 60 * 60 * 1000;
-    const oneWeek = 7 * oneDay;
-
-    return scores.filter(s => {
-      if (rankingTab === 'daily') return (now - s.timestamp) < oneDay;
-      return (now - s.timestamp) < oneWeek;
-    }).sort((a, b) => b.score - a.score).slice(0, 10);
-  };
-
   const renderRankingModal = () => (
     <div className="overlay premium-overlay ranking-overlay">
       <div className="result-card ranking-card">
@@ -372,8 +397,10 @@ function App() {
           </div>
         </div>
         <div className="ranking-list">
-          {getRankings().length > 0 ? (
-            getRankings().map((r, i) => (
+          {isLoadingRankings ? (
+            <p className="loading">불러오는 중...</p>
+          ) : rankings.length > 0 ? (
+            rankings.map((r, i) => (
               <div key={i} className="ranking-item">
                 <span className="rank">{i + 1}</span>
                 <span className="name">{r.nickname}</span>
