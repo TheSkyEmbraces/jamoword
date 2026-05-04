@@ -24,5 +24,8 @@ export async function connectToDatabase() {
   await collection.createIndex({ timestamp: 1 });
   await collection.createIndex({ nickname: 1, type: 1, size: 1 });
 
+  const usersCollection = db.collection('users');
+  await usersCollection.createIndex({ nickname: 1 }, { unique: true });
+
   return { client, db };
 }

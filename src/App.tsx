@@ -31,7 +31,9 @@ const API_URL = process.env.NODE_ENV === 'production'
 
 function App() {
   const [userNickname, setUserNickname] = useState<string | null>(localStorage.getItem('jamoword_nickname'));
+  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
   const [nicknameInput, setNicknameInput] = useState('');
+  const [passwordInput, setPasswordInput] = useState('');
   const [currentMode, setCurrentMode] = useState<GameMode | null>(null);
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [isRankingOpen, setIsRankingOpen] = useState(false);
@@ -40,10 +42,50 @@ function App() {
   const [isLoadingRankings, setIsLoadingRankings] = useState(false);
   const [personalBest, setPersonalBest] = useState<number>(0);
   const [totalStats, setTotalStats] = useState<{normal: number, timeattack: number, infinite: number}>({normal: 0, timeattack: 0, infinite: 0});
+  const [authError, setAuthError] = useState<string | null>(null);
 
+  const handleAuth = async () => {
+    setAuthError(null);
+    if (nicknameInput.trim().length < 2) {
+      setAuthError('닉네임을 2자 이상 입력해주세요.');
+      return;
+    }
+    if (passwordInput.length < 4) {
+      setAuthError('비밀번호를 4자 이상 입력해주세요.');
+      return;
+    }
 
+    try {
+      const endpoint = authMode === 'login' ? '/auth/login' : '/auth/signup';
+      const response = await fetch(`${API_URL}${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nickname: nicknameInput, password: passwordInput }),
+      });
 
-    // Helper: Fetch Personal Best from Server
+      const data = await response.json();
+
+      if (response.ok) {
+        localStorage.setItem('jamoword_nickname', data.nickname);
+        setUserNickname(data.nickname);
+        setNicknameInput('');
+        setPasswordInput('');
+      } else {
+        setAuthError(data.error || '인증에 실패했습니다.');
+      }
+    } catch (error) {
+      setAuthError('서버와의 통신에 실패했습니다.');
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('jamoword_nickname');
+    setUserNickname(null);
+    setCurrentMode(null);
+    setGameState(null);
+  };
+
+  // Helper: Fetch Personal Best from Server
   const getRemotePersonalBest = useCallback(async (type: string, size: number) => {
     if (!userNickname) return 0;
     try {
@@ -467,7 +509,10 @@ function App() {
       </div>
       <div className="header-right">
         <div className="nav-item" onClick={() => setIsRankingOpen(true)}>🏆 Rankings</div>
-        <div className="nav-item profile" title={userNickname || ''}>{userNickname ? userNickname[0] : '👤'}</div>
+        <div className="nav-item profile" title={userNickname || ''} onClick={handleLogout}>
+          {userNickname ? userNickname[0] : '👤'}
+          <span className="logout-tooltip">로그아웃</span>
+        </div>
       </div>
     </header>
   );
@@ -485,18 +530,29 @@ function App() {
       <div className="App premium onboarding">
         <div className="onboarding-card">
           <h1>JAMOWORD</h1>
-          <p>시작하기 전에 닉네임을 설정해주세요.</p>
+          <div className="auth-tabs">
+            <button className={authMode === 'login' ? 'active' : ''} onClick={() => {setAuthMode('login'); setAuthError(null);}}>로그인</button>
+            <button className={authMode === 'signup' ? 'active' : ''} onClick={() => {setAuthMode('signup'); setAuthError(null);}}>회원가입</button>
+          </div>
+          <p>{authMode === 'login' ? '기존 계정으로 로그인하세요.' : '새로운 계정을 만들어보세요.'}</p>
           <div className="input-group">
             <input 
               type="text" 
-              placeholder="닉네임 입력 (2자 이상)" 
+              placeholder="닉네임 (2자 이상)" 
               value={nicknameInput}
               onChange={(e) => setNicknameInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && registerNickname()}
             />
-            <button onClick={registerNickname}>시작하기</button>
+            <input 
+              type="password" 
+              placeholder="비밀번호 (4자 이상)" 
+              value={passwordInput}
+              onChange={(e) => setPasswordInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleAuth()}
+            />
+            {authError && <p className="auth-error">{authError}</p>}
+            <button onClick={handleAuth}>{authMode === 'login' ? '로그인' : '가입하기'}</button>
           </div>
-          <p className="notice">※ 로컬 스토리지에 저장되며, 전역 중복 확인은 지원하지 않습니다.</p>
+          <p className="notice">※ 랭킹과 기록이 계정에 안전하게 저장됩니다.</p>
         </div>
       </div>
     );

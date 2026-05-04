@@ -169,6 +169,78 @@ body {
   justify-content: center;
   align-items: center;
   border-radius: 50%;
+  position: relative;
+}
+
+.nav-item.profile:hover .logout-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+.logout-tooltip {
+  position: absolute;
+  top: 40px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-10px);
+  background: var(--color-text-primary);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: var(--transition-smooth);
+  pointer-events: none;
+}
+
+.logout-tooltip::after {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-bottom: 4px solid var(--color-text-primary);
+}
+
+/* ... existing styles ... */
+
+.auth-tabs {
+  display: flex;
+  background: var(--color-bg-secondary);
+  padding: 4px;
+  border-radius: var(--radius-md);
+  margin-bottom: 24px;
+}
+
+.auth-tabs button {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  background: none;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  border-radius: 8px;
+  transition: var(--transition-smooth);
+}
+
+.auth-tabs button.active {
+  background: white;
+  color: var(--color-toss-blue);
+  box-shadow: var(--shadow-low);
+}
+
+.auth-error {
+  color: #ff4b4b;
+  font-size: 13px;
+  font-weight: 600;
+  margin-top: -4px;
 }
 
 /* Dashboard Styles */
