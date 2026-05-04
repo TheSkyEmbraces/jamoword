@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import './App.css';
-import { MODES, WORD_LIST, CONSONANTS, VOWELS, CellStatus, GameMode, GameType, Tier, getTier, TIER_COLORS } from './constants';
+import { MODES, WORD_LIST, CONSONANTS, VOWELS, CellStatus, GameMode, GameType, getTier, TIER_COLORS } from './constants';
 
 interface RankEntry {
   nickname: string;
