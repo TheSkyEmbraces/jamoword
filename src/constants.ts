@@ -689,3 +689,45 @@ export const CONSONANTS = [
 export const VOWELS = [
   'ㅏ', 'ㅑ', 'ㅓ', 'ㅕ', 'ㅗ', 'ㅛ', 'ㅜ', 'ㅠ', 'ㅡ', 'ㅣ'
 ];
+
+export type Tier = 'Unranked' | 'Bronze' | 'Silver' | 'Gold' | 'Platinum' | 'Diamond' | 'Master' | 'Grandmaster' | 'Challenger';
+
+export const getTier = (score: number, type: GameType, size: number): Tier => {
+  if (score <= 0) return 'Unranked';
+
+  if (type === 'normal') {
+    if (score >= 200) return 'Challenger';
+    if (score >= 150) return 'Grandmaster';
+    if (score >= 100) return 'Master';
+    if (score >= 70) return 'Diamond';
+    if (score >= 40) return 'Platinum';
+    if (score >= 20) return 'Gold';
+    if (score >= 10) return 'Silver';
+    return 'Bronze';
+  } else {
+    // Timeattack or Infinite (PB based)
+    const base = size === 5 ? 1 : size === 6 ? 0.8 : 0.6; // Difficulty multiplier
+    const adjScore = score * base;
+
+    if (adjScore >= 20) return 'Challenger';
+    if (adjScore >= 15) return 'Grandmaster';
+    if (adjScore >= 12) return 'Master';
+    if (adjScore >= 9) return 'Diamond';
+    if (adjScore >= 6) return 'Platinum';
+    if (adjScore >= 4) return 'Gold';
+    if (adjScore >= 2) return 'Silver';
+    return 'Bronze';
+  }
+};
+
+export const TIER_COLORS: Record<Tier, string> = {
+  'Unranked': '#8b95a1',
+  'Bronze': '#ad5600',
+  'Silver': '#435f7a',
+  'Gold': '#ec9a00',
+  'Platinum': '#27e2a4',
+  'Diamond': '#00b4ef',
+  'Master': '#ef33ff',
+  'Grandmaster': '#ff4040',
+  'Challenger': '#f4c8ff'
+};

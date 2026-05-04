@@ -1,11 +1,11 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import './App.css';
-import { MODES, WORD_LIST, CONSONANTS, VOWELS, CellStatus, GameMode, GameType } from './constants';
+import { MODES, WORD_LIST, CONSONANTS, VOWELS, CellStatus, GameMode, GameType, Tier, getTier, TIER_COLORS } from './constants';
 
 interface RankEntry {
   nickname: string;
   score: number;
-  type: string;
+  type: GameType;
   size: number;
   timestamp: number;
 }
@@ -467,23 +467,49 @@ function App() {
       <div className="result-card ranking-card">
         <div className="card-header">
           <h2>🏆 실시간 랭킹</h2>
-          <div className="tab-buttons">
-            <button className={rankingTab === 'daily' ? 'active' : ''} onClick={() => setRankingTab('daily')}>일간</button>
-            <button className={rankingTab === 'weekly' ? 'active' : ''} onClick={() => setRankingTab('weekly')}>주간</button>
+          <div className="ranking-filters">
+            <div className="filter-group">
+              <label>기간</label>
+              <div className="tab-buttons mini">
+                <button className={rankingTab === 'daily' ? 'active' : ''} onClick={() => setRankingTab('daily')}>일간</button>
+                <button className={rankingTab === 'weekly' ? 'active' : ''} onClick={() => setRankingTab('weekly')}>주간</button>
+              </div>
+            </div>
+            <div className="filter-group">
+              <label>모드</label>
+              <div className="tab-buttons mini">
+                <button className={rankingType === 'normal' ? 'active' : ''} onClick={() => setRankingType('normal')}>일반</button>
+                <button className={rankingType === 'timeattack' ? 'active' : ''} onClick={() => setRankingType('timeattack')}>타임어택</button>
+                <button className={rankingType === 'infinite' ? 'active' : ''} onClick={() => setRankingType('infinite')}>무한</button>
+              </div>
+            </div>
+            <div className="filter-group">
+              <label>크기</label>
+              <div className="tab-buttons mini">
+                <button className={rankingSize === 5 ? 'active' : ''} onClick={() => setRankingSize(5)}>5x5</button>
+                <button className={rankingSize === 6 ? 'active' : ''} onClick={() => setRankingSize(6)}>6x6</button>
+                <button className={rankingSize === 7 ? 'active' : ''} onClick={() => setRankingSize(7)}>7x7</button>
+              </div>
+            </div>
           </div>
         </div>
         <div className="ranking-list">
           {isLoadingRankings ? (
             <p className="loading">불러오는 중...</p>
           ) : rankings.length > 0 ? (
-            rankings.map((r, i) => (
-              <div key={i} className="ranking-item">
-                <span className="rank">{i + 1}</span>
-                <span className="name">{r.nickname}</span>
-                <span className="mode-tag">{r.type}</span>
-                <span className="score-val">{r.score}</span>
-              </div>
-            ))
+            rankings.map((r, i) => {
+              const tier = getTier(r.score, r.type, r.size);
+              return (
+                <div key={i} className="ranking-item">
+                  <span className="rank">{i + 1}</span>
+                  <div className="user-info">
+                    <span className="tier-tag" style={{ backgroundColor: TIER_COLORS[tier] }}>{tier}</span>
+                    <span className="name">{r.nickname}</span>
+                  </div>
+                  <span className="score-val">{r.score}</span>
+                </div>
+              );
+            })
           ) : (
             <p className="no-data">기록된 데이터가 없습니다.</p>
           )}
@@ -557,6 +583,10 @@ function App() {
     const timeAttackModes = MODES.filter(m => m.type === 'timeattack');
     const infiniteModes = MODES.filter(m => m.type === 'infinite');
 
+    const normalTier = getTier(totalStats.normal, 'normal', 5);
+    const timeAttackTier = getTier(totalStats.timeattack, 'timeattack', 5);
+    const infiniteTier = getTier(totalStats.infinite, 'infinite', 5);
+
     return (
       <div className="App premium">
         {renderHeader()}
@@ -574,6 +604,7 @@ function App() {
               <p>기회 내에 차분하게 단어를 추리하세요.</p>
               <div className="pb-badge">
                 내 기록: <span>{totalStats.normal}개</span> 정복
+                <span className="tier-tag" style={{ backgroundColor: TIER_COLORS[normalTier] }}>{normalTier}</span>
               </div>
               <div className="mode-buttons">
                 {normalModes.map((m, i) => (
@@ -591,6 +622,7 @@ function App() {
               <p>120초 동안 최대한 많은 단어를 맞추세요.</p>
               <div className="pb-badge">
                 최고 점수: <span>{totalStats.timeattack}개</span>
+                <span className="tier-tag" style={{ backgroundColor: TIER_COLORS[timeAttackTier] }}>{timeAttackTier}</span>
               </div>
               <div className="mode-buttons">
                 {timeAttackModes.map((m, i) => (
@@ -608,6 +640,7 @@ function App() {
               <p>10분 동안 한계가 없는 도전을 즐기세요.</p>
               <div className="pb-badge">
                 최고 점수: <span>{totalStats.infinite}개</span>
+                <span className="tier-tag" style={{ backgroundColor: TIER_COLORS[infiniteTier] }}>{infiniteTier}</span>
               </div>
               <div className="mode-buttons">
                 {infiniteModes.map((m, i) => (
@@ -692,36 +725,6 @@ function App() {
                 <div className="final-stats-display">
                   <div className="big-score">
                     <span className="num">{gameState.totalSolved}</span>
-                    <span className="unit">WORDS</span>
-                  </div>
-                  <p className="desc">{currentMode.type === 'timeattack' ? '60초의 도전이 끝났습니다.' : '10분의 대장정이 끝났습니다.'}</p>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="result-icon">{gameState.isWin ? '✨' : '💨'}</div>
-                <h2>{gameState.isWin ? '미션 성공!' : '조금 아쉽네요'}</h2>
-                <div className="answer-reveal">
-                  <span className="label">정답은</span>
-                  <span className="word">{gameState.targetWord.join('')}</span>
-                </div>
-              </>
-            )}
-            <div className="result-actions">
-              <button className="btn-primary" onClick={() => setCurrentMode(null)}>대시보드로 돌아가기</button>
-              <button className="btn-secondary" onClick={() => initGame(currentMode)}>다시 도전</button>
-            </div>
-          </div>
-        </div>
-      )}
-      {isRankingOpen && renderRankingModal()}
-      {renderFooter()}
-    </div>
-  );
-}
-
-export default App;
-span className="num">{gameState.totalSolved}</span>
                     <span className="unit">WORDS</span>
                   </div>
                   <p className="desc">{currentMode.type === 'timeattack' ? '60초의 도전이 끝났습니다.' : '10분의 대장정이 끝났습니다.'}</p>
