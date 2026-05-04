@@ -57,11 +57,44 @@ function App() {
   const [authError, setAuthError] = useState<string | null>(null);
 
   const handleAuth = async () => {
-    // ... same logic
+    setAuthError(null);
+    if (nicknameInput.trim().length < 2) {
+      setAuthError('닉네임을 2자 이상 입력해주세요.');
+      return;
+    }
+    if (passwordInput.length < 4) {
+      setAuthError('비밀번호를 4자 이상 입력해주세요.');
+      return;
+    }
+
+    try {
+      const endpoint = authMode === 'login' ? '/auth/login' : '/auth/signup';
+      const response = await fetch(`${API_URL}${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nickname: nicknameInput, password: passwordInput }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        localStorage.setItem('jamoword_nickname', data.nickname);
+        setUserNickname(data.nickname);
+        setNicknameInput('');
+        setPasswordInput('');
+      } else {
+        setAuthError(data.error || '인증에 실패했습니다.');
+      }
+    } catch (error) {
+      setAuthError('서버와의 통신에 실패했습니다.');
+    }
   };
 
   const handleLogout = () => {
-    // ... same logic
+    localStorage.removeItem('jamoword_nickname');
+    setUserNickname(null);
+    setCurrentMode(null);
+    setGameState(null);
   };
 
   // Helper: Fetch Stats from Server
