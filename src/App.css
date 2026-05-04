@@ -287,6 +287,31 @@ body {
   display: flex;
   flex-direction: column;
   position: relative;
+  border: 2px solid transparent;
+}
+
+.dashboard-card.tier-bronze { border-color: #ad5600; }
+.dashboard-card.tier-silver { border-color: #435f7a; }
+.dashboard-card.tier-gold { border-color: #ec9a00; }
+.dashboard-card.tier-platinum { border-color: #27e2a4; }
+.dashboard-card.tier-diamond { border-color: #00b4ef; }
+.dashboard-card.tier-master { 
+  border-color: #ef33ff; 
+  box-shadow: 0 0 15px rgba(239, 51, 255, 0.3);
+}
+.dashboard-card.tier-grandmaster { 
+  border-color: #ff4040; 
+  box-shadow: 0 0 20px rgba(255, 64, 64, 0.4);
+}
+.dashboard-card.tier-challenger { 
+  border-color: #f4c8ff; 
+  box-shadow: 0 0 25px rgba(244, 200, 255, 0.6);
+  animation: challengerGlow 2s infinite alternate;
+}
+
+@keyframes challengerGlow {
+  from { box-shadow: 0 0 10px rgba(244, 200, 255, 0.4); }
+  to { box-shadow: 0 0 30px rgba(244, 200, 255, 0.8); }
 }
 
 .dashboard-card:hover {

@@ -597,7 +597,7 @@ function App() {
           </section>
 
           <div className="dashboard-grid">
-            <div className="dashboard-card">
+            <div className={`dashboard-card tier-${normalTier.toLowerCase()}`}>
               <div className="card-header">
                 <h3>일반 모드</h3>
               </div>
@@ -615,7 +615,7 @@ function App() {
               </div>
             </div>
 
-            <div className="dashboard-card highlight">
+            <div className={`dashboard-card highlight tier-${timeAttackTier.toLowerCase()}`}>
               <div className="card-header">
                 <h3>타임어택 모드</h3>
               </div>
@@ -633,7 +633,7 @@ function App() {
               </div>
             </div>
 
-            <div className="dashboard-card special">
+            <div className={`dashboard-card special tier-${infiniteTier.toLowerCase()}`}>
               <div className="card-header">
                 <h3>무한의 단어</h3>
               </div>
