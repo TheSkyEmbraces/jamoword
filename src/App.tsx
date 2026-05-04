@@ -151,15 +151,6 @@ function App() {
     }
   }, [currentMode, userNickname, getRemotePersonalBest]);
 
-  const registerNickname = () => {
-    if (nicknameInput.trim().length < 2) {
-      alert('닉네임을 2자 이상 입력해주세요.');
-      return;
-    }
-    localStorage.setItem('jamoword_nickname', nicknameInput);
-    setUserNickname(nicknameInput);
-  };
-
   const initGame = useCallback(async (mode: GameMode) => {
     const list = WORD_LIST[mode.size];
     const target = list[Math.floor(Math.random() * list.length)];
