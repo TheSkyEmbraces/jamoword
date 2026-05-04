@@ -580,9 +580,9 @@ function App() {
     const timeAttackModes = MODES.filter(m => m.type === 'timeattack');
     const infiniteModes = MODES.filter(m => m.type === 'infinite');
 
-    const normalTier = getTier(totalStats.normal, 'normal', 5);
-    const timeAttackTier = getTier(totalStats.timeattack, 'timeattack', 5);
-    const infiniteTier = getTier(totalStats.infinite, 'infinite', 5);
+    const normalTier = getTier(totalStats.normal.score, 'normal', 5);
+    const timeAttackTier = getTier(totalStats.timeattack.score, 'timeattack', 5);
+    const infiniteTier = getTier(totalStats.infinite.score, 'infinite', 5);
 
     const calculateWinRate = (stats: ScoreStats) => {
       if (stats.played === 0) return '0%';
