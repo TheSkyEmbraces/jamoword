@@ -743,7 +743,7 @@ body {
   
   .welcome-hero { padding: 0 16px; margin-bottom: 40px; }
   .welcome-hero h1 { font-size: 28px; }
-  .welcome-hero p { font-size: 15px; }
+  .welcome-hero p { font-size: 15px; word-break: keep-all;}
   
   .dashboard { padding: 40px 16px; }
   .dashboard-grid { grid-template-columns: 1fr; }
