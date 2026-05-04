@@ -124,7 +124,7 @@ function App() {
     const pb = await getRemotePersonalBest(mode.type, mode.size);
     
     let timerSeconds = undefined;
-    if (mode.type === 'timeattack') timerSeconds = 60;
+    if (mode.type === 'timeattack') timerSeconds = 120;
     if (mode.type === 'infinite') timerSeconds = 600;
 
     setGameState({

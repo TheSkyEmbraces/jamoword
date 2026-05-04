@@ -253,8 +253,9 @@ body {
 .dashboard-card p {
   color: var(--color-text-secondary);
   font-size: 15px;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
   flex: 1;
+  line-height: 1.6;
 }
 
 .mode-buttons {
@@ -338,14 +339,15 @@ body {
 
 .how-to-play ul {
   list-style: none;
-  font-size: 13px;
+  font-size: 14px;
   color: var(--color-text-secondary);
+  line-height: 1.6;
 }
 
 .how-to-play li {
-  margin-bottom: 8px;
+  margin-bottom: 12px;
   position: relative;
-  padding-left: 12px;
+  padding-left: 16px;
 }
 
 .how-to-play li::before {
@@ -783,4 +785,6 @@ body {
   }
   .big-score .num { font-size: 56px; }
   .answer-reveal .word { font-size: 24px; letter-spacing: 2px; }
+}
+
 }
