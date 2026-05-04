@@ -392,18 +392,28 @@ function App() {
 
     const getKeyClass = (key: string) => {
       const status = gameState?.usedKeys[key];
-      return `key ${status || ''}`;
+      return `key ${status || ''} ${key === 'ENTER' || key === 'BACK' ? 'functional' : ''}`;
     };
 
     return (
       <div className="keyboard">
         {dubeolsikRows.map((row, i) => (
           <div key={i} className="keyboard-row">
+            {i === 2 && (
+              <button className={getKeyClass('ENTER')} onClick={handleSubmit}>
+                ENTER
+              </button>
+            )}
             {row.map(key => (
               <button key={key} className={getKeyClass(key)} onClick={() => handleInput(key)}>
                 {key}
               </button>
             ))}
+            {i === 2 && (
+              <button className={getKeyClass('BACK')} onClick={handleDelete}>
+                BACK
+              </button>
+            )}
           </div>
         ))}
       </div>

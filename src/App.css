@@ -403,10 +403,11 @@ body {
 .pb-stat .value { color: #f39c12; }
 
 .grid-container {
-  margin-bottom: 48px;
+  margin-bottom: 32px;
   padding: 12px;
   background: var(--color-bg-secondary);
   border-radius: var(--radius-xl);
+  width: fit-content;
 }
 
 .grid {
@@ -464,6 +465,16 @@ body {
   font-weight: 700;
   font-size: 17px;
   transition: var(--transition-smooth);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.key.functional {
+  min-width: 60px;
+  padding: 0 10px;
+  font-size: 12px;
+  background-color: var(--color-border);
 }
 
 .key:hover {
@@ -716,7 +727,60 @@ body {
     gap: 20px;
   }
   .game-sidebar { display: none; }
-  .game-sidebar.left { display: block; margin-bottom: 20px; }
+  .game-sidebar.left { display: block; margin-bottom: 12px; }
   .welcome-hero h1 { font-size: 32px; }
   .footer-content { flex-direction: column; gap: 16px; text-align: center; }
+}
+
+@media (max-width: 600px) {
+  .app-header {
+    padding: 0 16px;
+  }
+  .logo { font-size: 18px; }
+  .nav-item { font-size: 12px; }
+  
+  .welcome-hero { padding: 0 16px; margin-bottom: 40px; }
+  .welcome-hero h1 { font-size: 28px; }
+  .welcome-hero p { font-size: 15px; }
+  
+  .dashboard { padding: 40px 16px; }
+  .dashboard-grid { grid-template-columns: 1fr; }
+  
+  .game-container { padding: 20px 12px; }
+  .game-status-bar { margin-bottom: 24px; }
+  .premium-stats { gap: 8px; }
+  .stat-item { min-width: 80px; padding: 6px 12px; }
+  .stat-item .value { font-size: 14px; }
+  
+  .cell {
+    width: 42px;
+    height: 42px;
+    font-size: 18px;
+    border-radius: 8px;
+  }
+  .grid { gap: 6px; }
+  .grid-container { padding: 8px; margin-bottom: 24px; }
+  
+  .keyboard-row { gap: 4px; }
+  .key {
+    height: 48px;
+    min-width: 28px;
+    font-size: 14px;
+    border-radius: 6px;
+  }
+  .key.functional {
+    min-width: 50px;
+    font-size: 10px;
+  }
+
+  .onboarding-card {
+    padding: 32px 24px;
+  }
+  .onboarding-card h1 { font-size: 24px; }
+  
+  .result-card {
+    padding: 32px 24px;
+  }
+  .big-score .num { font-size: 56px; }
+  .answer-reveal .word { font-size: 24px; letter-spacing: 2px; }
 }
