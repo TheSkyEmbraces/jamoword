@@ -347,6 +347,28 @@ body {
   font-weight: 800;
 }
 
+.dashboard-card .tier-tag {
+  position: absolute;
+  top: -12px;
+  right: 24px;
+  padding: 4px 12px;
+  font-size: 11px;
+  font-weight: 900;
+  border-radius: 8px;
+  color: white;
+  box-shadow: var(--shadow-medium);
+  z-index: 10;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.dashboard-card.tier-master .tier-tag { box-shadow: 0 0 10px rgba(239, 51, 255, 0.5); }
+.dashboard-card.tier-grandmaster .tier-tag { box-shadow: 0 0 10px rgba(255, 64, 64, 0.5); }
+.dashboard-card.tier-challenger .tier-tag { 
+  box-shadow: 0 0 15px rgba(244, 200, 255, 0.6);
+  animation: challengerGlow 2s infinite alternate;
+}
+
 .dashboard-card p {
   color: var(--color-text-secondary);
   font-size: 15px;
@@ -730,11 +752,6 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.5px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
-.pb-badge .tier-tag {
-  margin-left: 8px;
-  vertical-align: middle;
 }
 
 .ranking-item .mode-tag {
