@@ -331,15 +331,25 @@ body {
   font-weight: 700;
 }
 
-.pb-badge {
+.stats-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.pb-badge, .winrate-badge {
   font-size: 13px;
   font-weight: 600;
   color: var(--color-text-tertiary);
-  margin-bottom: 24px;
   background: var(--color-bg-secondary);
   padding: 4px 12px;
   border-radius: 20px;
   width: fit-content;
+}
+
+.winrate-badge span {
+  color: #ff4b4b;
+  font-weight: 800;
 }
 
 .pb-badge span {

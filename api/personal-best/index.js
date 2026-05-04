@@ -3,7 +3,7 @@ const { connectToDatabase } = require("../db");
 const Cors = require('cors');
 
 const cors = Cors({
-  methods: ['GET', 'HEAD'],
+  methods: ['GET', 'HEAD', 'OPTIONS'],
 });
 
 function runMiddleware(req, res, fn) {
@@ -44,13 +44,9 @@ async function handler(req, res) {
       size: parseInt(size, 10),
     };
 
-    const best = await collection
-      .find(query)
-      .sort({ score: -1 })
-      .limit(1)
-      .toArray();
+    const stats = await collection.findOne(query);
 
-    return res.status(200).json(best.length > 0 ? best[0].score : 0);
+    return res.status(200).json(stats || { score: 0, played: 0 });
   } catch (error) {
     console.error('Error fetching personal best:', error);
 

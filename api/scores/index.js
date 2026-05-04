@@ -29,7 +29,7 @@ async function handler(req, res) {
   }
 
   try {
-    const { nickname, score, type, size } = req.body;
+    const { nickname, score, type, size, isWin } = req.body;
 
     if (!nickname || score === undefined || !type || !size) {
       return res.status(400).json({ error: 'Missing required fields' });
@@ -38,11 +38,21 @@ async function handler(req, res) {
     const { db } = await connectToDatabase();
     const collection = db.collection('scores');
 
-    let updateDoc = {};
+    let updateDoc = {
+      $set: { timestamp: Date.now() },
+      $inc: { played: 1 }
+    };
+
     if (type === 'normal') {
-      updateDoc = { $inc: { score: score }, $set: { timestamp: Date.now() } };
+      if (isWin) {
+        updateDoc.$inc.score = 1;
+      }
     } else {
-      updateDoc = { $max: { score: score }, $set: { timestamp: Date.now() } };
+      updateDoc.$max = { score: score };
+      // For Timeattack/Infinite, 'score' is solved words in that session.
+      // We could also track total words solved across all time.
+      if (!updateDoc.$inc) updateDoc.$inc = {};
+      updateDoc.$inc.totalSolved = score;
     }
 
     const result = await collection.updateOne(
