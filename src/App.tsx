@@ -513,7 +513,7 @@ function App() {
         <main className="dashboard">
           <section className="welcome-hero">
             <h1>안녕하세요, {userNickname}님!</h1>
-            <p>자음과 모음을 조합하여 숨겨진 단어를 찾아내는 프리미엄 자모 게임입니다.</p>
+            <p>자음과 모음을 조합하여 숨겨진 단어를 찾아내는 게임입니다.</p>
           </section>
 
           <div className="dashboard-grid">
@@ -538,7 +538,7 @@ function App() {
               <div className="card-header">
                 <h3>타임어택 모드</h3>
               </div>
-              <p>60초 동안 최대한 많은 단어를 맞추세요.</p>
+              <p>120초 동안 최대한 많은 단어를 맞추세요.</p>
               <div className="pb-badge">
                 최고 점수: <span>{totalStats.timeattack}개</span>
               </div>
