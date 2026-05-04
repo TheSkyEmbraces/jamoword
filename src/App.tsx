@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import './App.css';
-import { MODES, WORD_LIST, CONSONANTS, VOWELS, CellStatus, GameMode } from './constants';
+import { MODES, WORD_LIST, CONSONANTS, VOWELS, CellStatus, GameMode, GameType } from './constants';
 
 interface RankEntry {
   nickname: string;
@@ -38,6 +38,8 @@ function App() {
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [isRankingOpen, setIsRankingOpen] = useState(false);
   const [rankingTab, setRankingTab] = useState<'daily' | 'weekly'>('daily');
+  const [rankingType, setRankingType] = useState<GameType>('normal');
+  const [rankingSize, setRankingSize] = useState<number>(5);
   const [rankings, setRankings] = useState<RankEntry[]>([]);
   const [isLoadingRankings, setIsLoadingRankings] = useState(false);
   const [personalBest, setPersonalBest] = useState<number>(0);
@@ -97,6 +99,7 @@ function App() {
       return 0;
     }
   }, [userNickname]);
+
   // Helper: Fetch Overall Stats from Server
   const fetchOverallStats = useCallback(async () => {
     if (!userNickname) return;
@@ -126,7 +129,7 @@ function App() {
   const fetchRankings = useCallback(async () => {
     setIsLoadingRankings(true);
     try {
-      const response = await fetch(`${API_URL}/rankings?period=${rankingTab}`);
+      const response = await fetch(`${API_URL}/rankings?period=${rankingTab}&type=${rankingType}&size=${rankingSize}`);
       const data = await response.json();
       setRankings(data);
     } catch (error) {
@@ -134,7 +137,7 @@ function App() {
     } finally {
       setIsLoadingRankings(false);
     }
-  }, [rankingTab]);
+  }, [rankingTab, rankingType, rankingSize]);
 
 
 
@@ -689,6 +692,36 @@ function App() {
                 <div className="final-stats-display">
                   <div className="big-score">
                     <span className="num">{gameState.totalSolved}</span>
+                    <span className="unit">WORDS</span>
+                  </div>
+                  <p className="desc">{currentMode.type === 'timeattack' ? '60초의 도전이 끝났습니다.' : '10분의 대장정이 끝났습니다.'}</p>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="result-icon">{gameState.isWin ? '✨' : '💨'}</div>
+                <h2>{gameState.isWin ? '미션 성공!' : '조금 아쉽네요'}</h2>
+                <div className="answer-reveal">
+                  <span className="label">정답은</span>
+                  <span className="word">{gameState.targetWord.join('')}</span>
+                </div>
+              </>
+            )}
+            <div className="result-actions">
+              <button className="btn-primary" onClick={() => setCurrentMode(null)}>대시보드로 돌아가기</button>
+              <button className="btn-secondary" onClick={() => initGame(currentMode)}>다시 도전</button>
+            </div>
+          </div>
+        </div>
+      )}
+      {isRankingOpen && renderRankingModal()}
+      {renderFooter()}
+    </div>
+  );
+}
+
+export default App;
+span className="num">{gameState.totalSolved}</span>
                     <span className="unit">WORDS</span>
                   </div>
                   <p className="desc">{currentMode.type === 'timeattack' ? '60초의 도전이 끝났습니다.' : '10분의 대장정이 끝났습니다.'}</p>
